@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.trade.mapper.NewsDataMapper">
+
+    <insert id="upsertBatch" parameterType="java.util.List">
+        INSERT INTO news_data (
+            source_id,
+            title,
+            pub_date,
+            content_text,
+            deleted,
+            create_time,
+            update_time
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.sourceId},
+                #{item.title},
+                #{item.pubDate},
+                #{item.contentText},
+                0,
+                NOW(),
+                NOW()
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            content_text = VALUES(content_text),
+            pub_date = VALUES(pub_date),
+            title = IF(VALUES(title) IS NULL OR VALUES(title) = '', title, VALUES(title)),
+            deleted = 0,
+            update_time = NOW()
+    </insert>
+
+</mapper>

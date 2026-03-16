@@ -1,0 +1,18 @@
+# Build outputs
+**/target
+**/*.class
+**/*.log
+
+# VCS / IDE
+.git
+.idea
+.vscode
+
+# Frontend heavy dirs
+frontend/node_modules
+frontend/dist
+
+# Misc
+*.iml
+.DS_Store
+Thumbs.db

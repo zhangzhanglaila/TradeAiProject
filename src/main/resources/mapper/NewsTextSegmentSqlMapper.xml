@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.trade.ai.rag.NewsTextSegmentSqlMapper">
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO news_text_segment (
+            news_id,
+            chunk_index,
+            content,
+            embedding,
+            deleted,
+            create_time,
+            update_time
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.newsId},
+                #{item.chunkIndex},
+                #{item.content},
+                #{item.embedding},
+                0,
+                NOW(),
+                NOW()
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteByNewsId">
+        DELETE FROM news_text_segment WHERE news_id = #{newsId}
+    </delete>
+
+    <select id="countByNewsId" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM news_text_segment
+        WHERE news_id = #{newsId}
+    </select>
+
+    <select id="selectCandidates" resultType="com.trade.ai.rag.NewsTextSegmentWithNews">
+        SELECT
+            nts.news_id AS newsId,
+            nts.chunk_index AS chunkIndex,
+            nts.content AS content,
+            nts.embedding AS embedding,
+            n.title AS title,
+            n.pub_date AS pubDate,
+            n.url AS url
+        FROM news_text_segment nts
+        JOIN news_data n ON n.id = nts.news_id
+        WHERE (n.deleted = 0 OR n.deleted IS NULL)
+        <if test="start != null">
+            AND n.pub_date &gt;= #{start}
+        </if>
+        <if test="end != null">
+            AND n.pub_date &lt;= #{end}
+        </if>
+        ORDER BY n.pub_date DESC, nts.news_id DESC, nts.chunk_index ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectRecentNewsIds" resultType="java.lang.Long">
+        SELECT n.id
+        FROM news_data n
+        WHERE (n.deleted = 0 OR n.deleted IS NULL)
+        <if test="start != null">
+            AND n.pub_date &gt;= #{start}
+        </if>
+        <if test="end != null">
+            AND n.pub_date &lt;= #{end}
+        </if>
+        ORDER BY n.pub_date DESC, n.id DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
